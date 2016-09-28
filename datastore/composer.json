@@ -1,19 +1,18 @@
 {
-  "autoload": {
-    "psr-4": {
-      "Google\\Cloud\\Samples\\Datastore\\": "src"
-    }
-  },
-  "require": {
-    "php": ">=5.4",
-    "google/apiclient": "^2.0",
-    "silex/silex": "~1.3",
-    "symfony/twig-bridge": "~2.7|3.0.*",
-    "twig/twig": "~1.8|~2.0"
-  },
-  "require-dev": {
-    "symfony/browser-kit": "~2.7",
-    "symfony/css-selector": "~2.0",
-    "symfony/dom-crawler": "~2.0"
-  }
+    "require": {
+        "google/cloud": "dev-debug-mode"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "~4.8"
+    },
+    "autoload": {
+        "psr-4": { "Google\\Cloud\\Samples\\Datastore\\": "src" },
+        "files": [
+            "src/functions/concepts.php"
+        ]
+    },
+    "repositories": [{
+        "type": "vcs",
+        "url": "https://github.com/jdpedrie/gcloud-php"
+    }]
 }
