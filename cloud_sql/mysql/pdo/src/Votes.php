@@ -15,68 +15,89 @@
  * limitations under the License.
  */
 
+declare(strict_types=1);
+
 namespace Google\Cloud\Samples\CloudSQL\MySQL;
 
 use PDO;
 
+/**
+ * Manage votes using the Cloud SQL database.
+ */
 class Votes
 {
+    /**
+     * @var PDO
+     */
     private $connection;
 
+    /**
+     * @param PDO $connection A connection to the database.
+     */
     public function __construct(PDO $connection)
     {
         $this->connection = $connection;
-        $this->create_table();
+        $this->createTable();
     }
 
-    private function create_table()
+    /**
+     * Creates the table if it does not yet exist.
+     *
+     * @return void
+     */
+    private function createTable()
     {
         $sql = "CREATE TABLE IF NOT EXISTS votes (
             vote_id INT NOT NULL AUTO_INCREMENT,
             time_cast DATETIME NOT NULL,
-            candidate VARCHAR(6) NOT NULL,
+            team VARCHAR(6) NOT NULL,
             PRIMARY KEY (vote_id)
         );";
 
         $this->connection->exec($sql);
     }
 
-    public function list()
+    /**
+     * Returns a list of the last five votes
+     *
+     * @return array
+     */
+    public function listVotes() : array
     {
-        $sql = "SELECT candidate, time_cast FROM votes ORDER BY time_cast DESC LIMIT 5";
+        $sql = "SELECT team, time_cast FROM votes ORDER BY time_cast DESC LIMIT 5";
         $statement = $this->connection->prepare($sql);
         $statement->execute();
-        return $statement->fetchAll();
+        return $statement->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function count_candidates()
+    /**
+     * Get the number of votes cast for a team.
+     *
+     * @param string $team
+     * @param int
+     */
+    public function getCountByTeam(string $team) : int
     {
-        $sql = "SELECT COUNT(vote_id) as voteCount FROM votes WHERE candidate = ?";
-        $count = [];
+        $sql = "SELECT COUNT(vote_id) as voteCount FROM votes WHERE team = ?";
 
         $statement = $this->connection->prepare($sql);
+        $statement->execute([$team]);
 
-        //tabs
-        $statement->execute(['TABS']);
-        $count['tabs'] = $statement->fetch()[0];
-
-        //spaces
-        $statement->execute(['SPACES']);
-        $count['spaces'] = $statement->fetch()[0];
-
-        return $count;
+        return (int) $statement->fetch(PDO::FETCH_COLUMN);
     }
 
-    public function save($team)
+    /**
+     * Insert a new vote into the database
+     *
+     * @param string $team The team to vote for.
+     * @return boolean
+     */
+    public function insertVote(string $team) : bool
     {
-        $sql = "INSERT INTO votes (time_cast, candidate) VALUES (NOW(), :candidate)";
+        $sql = "INSERT INTO votes (time_cast, team) VALUES (NOW(), :team)";
         $statement = $this->connection->prepare($sql);
-        $statement->bindParam('candidate', $team);
+        $statement->bindParam('team', $team);
 
-        if ($statement->execute()) {
-            return "Vote successfully cast for '$team'";
-        }
-
-        return print_r($statement->errorInfo(), true);
+        return $statement->execute();
     }
 }
